@@ -1,5 +1,4 @@
-#include "mleak_test.h"
-#include <new>
+#include "mleak_plugin.h"
 
 #define ALIGNED_LIST_ITEM_SIZE sizeof(new_ptr_list_t)
 #define DEBUG_NEW_FILE_NAME_LEN 200
@@ -83,14 +82,6 @@ void* operator new[] (std::size_t size, const char* file, int line) {
     return alloc_mem(size, file, line);
 }
 
-void* operator new(std::size_t size) {
-    return operator new(size, __FILE__, __LINE__);
-}
-void* operator new[](std::size_t size) {
-    return operator new[](size, __FILE__, __LINE__);
-}
-#define new new (__FILE__, __LINE__)
-
 void operator delete(void* ptr) noexcept {
     free_pointer(ptr, nullptr);
 }
@@ -114,7 +105,7 @@ int checkLeaks() {
     while(ptr != &new_ptr_list) {
         const char* const usr_ptr = (char*)ptr + ALIGNED_LIST_ITEM_SIZE;
         std::cout << "Leaked object at " << std::hex << (void*)usr_ptr 
-             << "(size " << ptr->size << " ";
+             << " (size " << ptr->size << " ";
         if (ptr->line != 0) {
             print_position(ptr->file, ptr->line);
         } else {
